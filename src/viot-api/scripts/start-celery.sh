@@ -1,0 +1,1 @@
+celery -A app.modules.celery_task.celery worker -l info -B
