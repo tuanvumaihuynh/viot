@@ -1,10 +1,7 @@
-from unittest.mock import AsyncMock
-
 import pytest
 import pytest_asyncio
 import uvloop
 from httpx import ASGITransport, AsyncClient
-from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import model_include  # noqa: F401
