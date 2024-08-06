@@ -7,6 +7,39 @@ from app.modules.auth.schemas import RegisterRequest
 from app.modules.team import schemas
 
 
+async def test_get_all_teams(db: AsyncSession, user: ViotUser):
+    from app.modules.team.service import create, get_all
+
+    name = "Test Team"
+    description = "A team for testing"
+
+    # Create team
+    request = schemas.TeamCreateRequest(name=name, description=description)
+    await create(db=db, request=request, user_id=user.id)
+
+    # Get all teams
+    teams = await get_all(db=db, user_id=user.id)
+
+    assert len(teams) == 1
+    assert teams[0].name == name
+    assert teams[0].description == description
+    assert teams[0].default is True
+
+
+async def test_exist_by_id(db: AsyncSession, user: ViotUser):
+    from app.modules.team.service import create, exist_by_id
+
+    name = "Test Team"
+    description = "A team for testing"
+
+    # Create team
+    request = schemas.TeamCreateRequest(name=name, description=description)
+    created_team = await create(db=db, request=request, user_id=user.id)
+
+    # Check if team exist
+    assert await exist_by_id(db=db, id=created_team.id) is True
+
+
 async def test_create_team(db: AsyncSession, user: ViotUser):
     from app.modules.team.service import create
 
@@ -61,6 +94,39 @@ async def test_update_team(db: AsyncSession, user: ViotUser):
     assert updated_team.name == new_name
     assert updated_team.description == new_description
     assert updated_team.default is True
+
+
+async def test_update_team_error_not_owner(db: AsyncSession, user: ViotUser):
+    from app.modules.auth import service as auth_service
+    from app.modules.team.service import create, update
+
+    # Create team owner
+    request = RegisterRequest(
+        email="user2@gmail.com",
+        first_name="Test",
+        last_name="User",
+        password="!Test123",
+    )
+    owner = await auth_service.create(db=db, request=request)
+
+    name = "Test Team"
+    description = "A team for testing"
+
+    # Create team
+    request = schemas.TeamCreateRequest(name=name, description=description)
+    created_team = await create(db=db, request=request, user_id=owner.id)
+
+    # Update team
+    new_name = "Updated Team"
+    new_description = "Updated description"
+    request = schemas.TeamUpdateRequest(
+        name=new_name, description=new_description, team_id=created_team.id
+    )
+
+    with pytest.raises(PermissionDeniedException) as excinfo:
+        await update(db=db, request=request, team_id=created_team.id, user_id=user.id)
+
+    assert str(excinfo.value) == "User is not owner of this team."
 
 
 async def test_delete_default_team_error(db: AsyncSession, user: ViotUser):
