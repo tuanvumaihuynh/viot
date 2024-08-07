@@ -9,6 +9,9 @@ class EmailSettings(BaseSettings):
     VIOT_DOMAIN_URL: str
     VIOT_API_PREFIX: str = "/api/v1"
 
+    VIOT_EMAIL_HOST: str
+    VIOT_EMAIL_PORT: int
+    VIOT_EMAIL_SSL: bool
     VIOT_EMAIL_USER: str
     VIOT_EMAIL_PASSWORD: str
 

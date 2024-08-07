@@ -11,7 +11,14 @@ from .exceptions import TemplateNotFoundException
 logger = logging.getLogger(__name__)
 
 
-_yagmail = yagmail.SMTP(email_settings.VIOT_EMAIL_USER, email_settings.VIOT_EMAIL_PASSWORD)
+_yagmail = yagmail.SMTP(
+    host=email_settings.VIOT_EMAIL_HOST,
+    port=email_settings.VIOT_EMAIL_PORT,
+    smtp_starttls=None if email_settings.VIOT_EMAIL_SSL else False,
+    smtp_ssl=email_settings.VIOT_EMAIL_SSL,
+    user=email_settings.VIOT_EMAIL_USER,
+    password=email_settings.VIOT_EMAIL_PASSWORD,
+)
 _template_dir = Path(__file__).parent / "templates"
 _env = Environment(loader=FileSystemLoader(_template_dir), autoescape=select_autoescape(["html"]))
 
