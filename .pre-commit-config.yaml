@@ -1,3 +1,13 @@
+# Quick Start:
+#
+# pip install pre-commit
+# pre-commit install && pre-commit install -t pre-push
+# pre-commit run --all-files
+#
+# To Skip Checks:
+#
+# git commit --no-verify
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

@@ -3,6 +3,98 @@ networks:
     driver: bridge
 
 services:
+  viot-api:
+    build:
+      context: .
+      dockerfile: ./docker/viot/api.dockerfile
+    container_name: viot-api
+    ports:
+      - 8000:8000
+    environment:
+      - VIOT_API_ENV=dev
+      - VIOT_DOMAIN_URL=localhost:8000
+      - VIOT_POSTGRES_SERVER=timescaledb
+      - VIOT_POSTGRES_PORT=5432
+      - VIOT_POSTGRES_USER=postgres
+      - VIOT_POSTGRES_PASSWORD=postgres
+      - VIOT_POSTGRES_DB=postgres
+      - VIOT_REDIS_SERVER=redis
+      - VIOT_REDIS_PORT=6379
+      - VIOT_CELERY_BROKER_REDIS_DATABASE=0
+      - VIOT_CELERY_BACKEND_REDIS_DATABASE=1
+      - VIOT_EMAIL_HOST=mailpit
+      - VIOT_EMAIL_PORT=1025
+      - VIOT_EMAIL_SSL=False
+      - VIOT_EMAIL_USER=test@example.com
+      - VIOT_EMAIL_PASSWORD=password
+      - VIOT_JWT_SECRET=secret
+      - VIOT_JWT_REFRESH_TOKEN_DOMAIN=localhost:8000
+    networks:
+      - viot
+    depends_on:
+      - timescaledb
+      - redis
+      - mailpit
+
+  viot-celery:
+    build:
+      context: .
+      dockerfile: ./docker/viot/celery.dockerfile
+    container_name: viot-celery
+    environment:
+      - VIOT_DOMAIN_URL=localhost:8000
+      - VIOT_REDIS_SERVER=redis
+      - VIOT_REDIS_PORT=6379
+      - VIOT_CELERY_BROKER_REDIS_DATABASE=0
+      - VIOT_CELERY_BACKEND_REDIS_DATABASE=1
+      - VIOT_EMAIL_HOST=mailpit
+      - VIOT_EMAIL_PORT=1025
+      - VIOT_EMAIL_SSL=False
+      - VIOT_EMAIL_USER=test@example.com
+      - VIOT_EMAIL_PASSWORD=password
+    networks:
+      - viot
+    command: >
+      sh -c "
+        echo 'Starting Celery Worker' &&
+        celery -A app.modules.celery_task.celery worker -l info -B
+      "
+    depends_on:
+      - timescaledb
+      - redis
+      - mailpit
+
+  viot-flower:
+    build:
+      context: .
+      dockerfile: ./docker/viot/celery.dockerfile
+    container_name: viot-flower
+    ports:
+      - 8555:8555
+    environment:
+      - VIOT_DOMAIN_URL=localhost:8000
+      - VIOT_REDIS_SERVER=redis
+      - VIOT_REDIS_PORT=6379
+      - VIOT_CELERY_BROKER_REDIS_DATABASE=0
+      - VIOT_CELERY_BACKEND_REDIS_DATABASE=1
+      - VIOT_EMAIL_HOST=mailpit
+      - VIOT_EMAIL_PORT=1025
+      - VIOT_EMAIL_SSL=False
+      - VIOT_EMAIL_USER=test@example.com
+      - VIOT_EMAIL_PASSWORD=password
+    networks:
+      - viot
+    command: >
+      sh -c "
+        echo 'Starting Celery Flower dashboard' &&
+        celery -A app.modules.celery_task.celery flower --port=8555 --basic-auth=admin:1234
+      "
+    depends_on:
+      - timescaledb
+      - redis
+      - mailpit
+
+
   timescaledb:
     image: timescale/timescaledb:latest-pg14
     container_name: timescaledb
@@ -27,3 +119,19 @@ services:
     networks:
       - viot
 
+  mailpit:
+    image: axllent/mailpit:v1.20.0
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - ./docker/mailpit/data:/data
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - viot
