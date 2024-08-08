@@ -13,14 +13,27 @@ repos:
     rev: v4.6.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^templates/templated_email/compiled/
-        exclude_types: [svg,graphql]
       - id: end-of-file-fixer
-        exclude: ^templates/templated_email/compiled/
-        exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.5.4
     hooks:
       - id: ruff
+        args: [--fix]
       - id: ruff-format
+
+  # Typos
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.16.23
+    hooks:
+      - id: typos
+
+  # Pytest
+  - repo: local
+    hooks:
+      - id: tests
+        name: run tests
+        entry: pytest -v
+        language: system
+        types: [python]
+        stages: [push]
