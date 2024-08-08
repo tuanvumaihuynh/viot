@@ -29,10 +29,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for docker
-        id: meta
-        uses: docker/metadata-action@v3
+      - name: Build and push docker image
+        id: push
+        uses: docker/build-push-action@v2
         with:
-          images: |
+          context: .
+          file: ./docker/viot/api.dockerfile
+          push: true
+          tags: |
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:latest
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:${{ github.sha }}
