@@ -45,7 +45,15 @@ RUN ln -s /run/shm /dev/shm
 
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 COPY ${PROJECT_DIR}/app /code/app
+
+RUN mkdir -p /code/app/logs
+COPY ${PROJECT_DIR}/scripts/start-celery.sh /code/celery-entrypoint.sh
+
 WORKDIR /code
 
 RUN chown -R viot:viot /code
 USER viot
+
+EXPOSE 8555
+
+CMD ["./celery-entrypoint.sh"]
