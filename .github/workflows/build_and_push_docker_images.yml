@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - feat/gh-actions
   pull_request:
     branches:
       - dev
