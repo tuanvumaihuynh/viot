@@ -1,0 +1,49 @@
+name: Publish docker images
+
+on:
+  # Trigger the action manually from the UI
+  workflow_dispatch:
+  # Trigger the action when I create or push a `release/**` branch
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  build_and_push:
+    name: Push docker image to Docker Hub
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Get the release version
+        # ex: release/1.0.0 -> 1.0.0
+        id: strip-branch-name
+        shell: bash
+        run: |
+          release_version=$(echo "${{ github.ref }}" | sed 's/refs\/heads\/.*\///')
+          echo "Building release version $release_version"
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Build and push docker image
+        id: push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/viot/api.dockerfile
+          push: true
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:${{ env.RELEASE_VERSION }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-celery:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-celery:${{ env.RELEASE_VERSION }}
