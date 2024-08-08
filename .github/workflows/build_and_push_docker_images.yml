@@ -28,3 +28,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:${{ github.sha }}
