@@ -1,14 +1,18 @@
 name: Python Lint and Test
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
 
 jobs:
   test:
     env:
+      # ref: https://github.com/Netflix/dispatch/blob/master/.github/workflows/python.yml
       # Minimum code coverage per file
       COVERAGE_SINGLE: 50
       # Minimum total code coverage
