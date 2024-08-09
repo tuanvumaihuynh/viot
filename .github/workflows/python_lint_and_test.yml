@@ -33,9 +33,10 @@ jobs:
           ruff check src/viot-api/app src/viot-api/tests
           ruff format src/viot-api/app src/viot-api/tests
 
-      - name: Run docker compose test
-        run: |
-          docker-compose -f docker-compose.test.yml up --build -d --abort-on-container-exit
+      - name: Run docker-compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./docker-compose.test.yml"
 
       - name: Test with pytest
         run: |
