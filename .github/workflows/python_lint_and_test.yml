@@ -40,18 +40,14 @@ jobs:
 
       - name: Test with pytest
         run: |
-          docker-compose exec -T --user root viot-api pip3 install pytest-asyncio pytest-cov pytest-mock httpx
-          docker-compose exec -T viot-api pytest --junitxml=junit/test-results.xml --cov=app --cov-report=json:coverage.json --cov-report=xml --cov-report=html
+          docker compose exec -T --user root viot-api pip3 install pytest-asyncio pytest-cov pytest-mock httpx
+          docker compose exec -T viot-api pytest --junitxml=junit/test-results.xml --cov=app --cov-report=json:coverage.json --cov-report=xml --cov-report=html
 
       - name: Copy coverage report from container
         run: |
           docker cp viot-api:/code/coverage.json ./coverage.json
           docker cp viot-api:/code/coverage.xml ./coverage.xml
           docker cp viot-api:/code/htmlcov ./htmlcov
-
-      - name: Stop docker compose
-        run: |
-          docker-compose -f docker-compose.test.yml down
 
       - name: Coverage per file
         # All modified files should meet the minimum code coverage requirement.
