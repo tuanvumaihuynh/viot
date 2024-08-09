@@ -40,11 +40,11 @@ async def search_sort_paginate(
     if stmt is None:
         stmt = select(model_cls)
 
-    if not hasattr(model_cls, search_attr.key):
-        logger.exception(f"Model {model_cls} has no attribute {search_attr.key}")
-        raise ValueError(f"Model {model_cls} has no attribute {search_attr.key}")
+    if query_str and isinstance(search_attr, InstrumentedAttribute):
+        if not hasattr(model_cls, search_attr.key):
+            logger.exception(f"Model {model_cls} has no attribute {search_attr.key}")
+            raise ValueError(f"Model {model_cls} has no attribute {search_attr.key}")
 
-    if query_str:
         if isinstance(search_attr.type, TSVectorType):
             logger.debug("Using full-text search")
             stmt = stmt.filter(search_attr.match(query_str))
