@@ -1,0 +1,81 @@
+name: Python Lint and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  test:
+    env:
+      # ref: https://github.com/Netflix/dispatch/blob/master/.github/workflows/python.yml
+      # Minimum code coverage per file
+      COVERAGE_SINGLE: 50
+      # Minimum total code coverage
+      COVERAGE_TOTAL: 70
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install ruff
+
+      - name: "Lint with ruff"
+        run: |
+          ruff check src/viot-api/app src/viot-api/tests
+          ruff format src/viot-api/app src/viot-api/tests
+
+      - name: Run docker-compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./docker-compose.test.yml"
+
+      - name: Test with pytest
+        run: |
+          docker compose exec -T --user root viot-api pip3 install pytest-asyncio pytest-cov pytest-mock httpx
+          docker compose exec -T viot-api pytest --junitxml=junit/test-results.xml --cov=app --cov-report=json:coverage.json --cov-report=xml --cov-report=html
+
+      - name: Copy coverage report from container
+        run: |
+          docker cp viot-api:/code/coverage.json ./coverage.json
+          docker cp viot-api:/code/coverage.xml ./coverage.xml
+          docker cp viot-api:/code/htmlcov ./htmlcov
+
+      - name: Coverage per file
+        # All modified files should meet the minimum code coverage requirement.
+        run: |
+          export MODIFIED_FILES=$(git diff main...HEAD --name-only | grep -E '\.py$')
+          export FAILED_COVERAGE_PER_FILE=$(python -c "import json;files=json.load(open('coverage.json'))['files'];covs=map(lambda k, v: (k, v['summary']['percent_covered_display']),files.keys(),files.values()); f=filter(lambda cov:int(cov[1])<50,covs); print('\n'.join('{:<68}{:>3}%'.format(k,v) for k,v in f))")
+          export FAILED_COVERAGE_FILES=(); echo "$FAILED_COVERAGE_PER_FILE" | while read -r line; do FAILED_COVERAGE_FILES+=${line%%[[:space:]]*};done
+
+          files=($(comm -12 <(for X in "${MODIFIED_FILES}"; do echo "${X}"; done|sort) <(for X in "${FAILED_COVERAGE_FILENAMES}"; do echo "${X}"; done|sort)))
+
+          if [[ ${#files[@]} > 0 ]]; then
+            echo "FAIL Recommended file test coverage of ${{ env.COVERAGE_SINGLE }}% not reached. All modified files must meet the minimum code coverage requirement."
+
+            for f in "${files[@]}"; do
+              echo $FAILED_COVERAGE_PER_FILE | grep $f
+            done
+
+            exit 1
+          fi
+      - name: Coverage total
+        run: |
+          export COVERAGE_TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+          echo "Total coverage: $COVERAGE_TOTAL%"
+          if [[ $COVERAGE_TOTAL < ${{ env.COVERAGE_TOTAL }} ]]; then
+            echo "FAIL Recommended total test coverage of ${{ env.COVERAGE_TOTAL }}% not reached. Total coverage: $COVERAGE_TOTAL%"
+            exit 1
+          fi

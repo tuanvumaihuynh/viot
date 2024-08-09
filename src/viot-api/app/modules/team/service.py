@@ -32,7 +32,7 @@ async def get(*, db: AsyncSession, id: UUID) -> Team | None:
 async def get_or_raise(*, db: AsyncSession, id: UUID) -> Team:
     org = await get(db=db, id=id)
     if not org:
-        raise BadRequestException("Team not found.")
+        raise BadRequestException(message="Team not found")
     return org
 
 
@@ -84,7 +84,7 @@ async def update(
     # Validate if user is owner of Team
     if not await role_service.is_team_owner(db=db, team_id=team_id, user_id=user_id):
         logger.warning(f"User {user_id} is not owner of team {team_id}")
-        raise PermissionDeniedException("User is not owner of this team.")
+        raise PermissionDeniedException(message="User is not owner of this team")
 
     for field, value in request.model_dump(exclude_none=True).items():
         setattr(team, field, value)
@@ -100,10 +100,10 @@ async def delete(*, db: AsyncSession, team_id: UUID, user_id: UUID) -> None:
     # Validate if user is owner of Team
     if not await role_service.is_team_owner(db=db, team_id=team_id, user_id=user_id):
         logger.warning(f"User {user_id} is not owner of team {team_id}")
-        raise PermissionDeniedException("User is not owner of this team.")
+        raise PermissionDeniedException(message="User is not owner of this team")
 
     if team.default:
-        raise BadRequestException(message="Cannot delete default team.")
+        raise BadRequestException(message="Cannot delete default team")
 
     stmt = sa_delete(Team).where(Team.id == team_id)
     await db.execute(stmt)

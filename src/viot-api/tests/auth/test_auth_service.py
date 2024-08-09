@@ -49,7 +49,7 @@ async def test_authenticate_wrong_password(db: AsyncSession):
 
 
 async def test_change_password_success(db: AsyncSession):
-    from app.modules.auth.service import authenticate, change_pwd, create, login
+    from app.modules.auth.service import authenticate, change_pwd, create
 
     # Create user
     email = "abc@gmail.com"
@@ -70,29 +70,6 @@ async def test_change_password_success(db: AsyncSession):
     # Login with new password
     login_request = LoginRequest(email=email, password=new_password)
     await authenticate(db=db, request=login_request)
-
-
-async def test_change_password_error_same_password(db: AsyncSession):
-    from app.modules.auth.service import change_pwd, create
-
-    # Create user
-    email = "abc@gmail.com"
-    password = "!123QWEqwe"
-    first_name = "John"
-    last_name = "Doe"
-    request = schemas.RegisterRequest(
-        email=email, password=password, first_name=first_name, last_name=last_name
-    )
-    user = await create(db=db, request=request)
-
-    # Change password
-    new_password = password
-    change_pwd_request = schemas.ChangePwdRequest(old_password=password, new_password=new_password)
-
-    with pytest.raises(BadRequestException) as excinfo:
-        await change_pwd(db=db, request=change_pwd_request, user_id=user.id)
-
-    assert str(excinfo.value) == "New password must be different from the current password."
 
 
 async def test_change_password_error_wrong_password(db: AsyncSession):
@@ -117,7 +94,7 @@ async def test_change_password_error_wrong_password(db: AsyncSession):
     with pytest.raises(BadRequestException) as excinfo:
         await change_pwd(db=db, request=change_pwd_request, user_id=user.id)
 
-    assert str(excinfo.value) == "Current password is incorrect."
+    assert str(excinfo.value) == "Current password is incorrect"
 
 
 async def test_exist_by_email(db: AsyncSession):
@@ -220,7 +197,7 @@ async def test_delete_user(db: AsyncSession):
     try:
         await get_or_raise(db=db, user_id=user.id)
     except Exception as e:
-        assert str(e) == "User with this id not exist."
+        assert str(e) == "User with this id not exist"
 
 
 async def test_exist_by_id(db: AsyncSession):

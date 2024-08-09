@@ -1,19 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, Path, status
 
 from app.database.dependencies import DbSession
-from app.exceptions import BadRequestException
 from app.modules.auth.dependencies import CurrentActiveUser
 
 # from app.modules.invitation import service as org_invitation_service
-from app.modules.invitation.enums import InvitationStatus
-from app.modules.invitation.schemas import (
-    InvitationCreateRequest,
-    InvitationResponse,
-    PagingInvitationResponse,
-)
-
 from . import service as team_service
 from .schemas import TeamCreateRequest, TeamListResponse, TeamResponse
 

@@ -26,7 +26,6 @@ ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 FROM python-base AS builder-base
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-    curl \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
@@ -38,9 +37,14 @@ RUN poetry install --without worker,dev,test
 
 
 FROM python-base AS production
+
+WORKDIR /code
+# Fixing when run pytest
+RUN chown -R viot:viot /code
+
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
-COPY ${PROJECT_DIR}/app /app
-WORKDIR /
+COPY ${PROJECT_DIR}/app /code/app
+
 ENV PYTHONPATH=':$PYTHONPATH:.'
 
 USER viot

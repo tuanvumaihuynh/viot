@@ -1,0 +1,63 @@
+networks:
+  viot:
+    driver: bridge
+
+services:
+  viot-api:
+    build:
+      context: .
+      dockerfile: ./docker/viot/api.dockerfile
+    container_name: viot-api
+    ports:
+      - 8000:8000
+    environment:
+      - VIOT_API_ENV=dev
+      - VIOT_DOMAIN_URL=localhost:8000
+      - VIOT_POSTGRES_SERVER=timescaledb
+      - VIOT_POSTGRES_PORT=5432
+      - VIOT_POSTGRES_USER=postgres
+      - VIOT_POSTGRES_PASSWORD=postgres
+      - VIOT_POSTGRES_DB=postgres
+      - VIOT_REDIS_SERVER=redis
+      - VIOT_REDIS_PORT=6379
+      - VIOT_CELERY_BROKER_REDIS_DATABASE=0
+      - VIOT_CELERY_BACKEND_REDIS_DATABASE=1
+      - VIOT_EMAIL_HOST=mailpit
+      - VIOT_EMAIL_PORT=1025
+      - VIOT_EMAIL_SSL=False
+      - VIOT_EMAIL_USER=test@example.com
+      - VIOT_EMAIL_PASSWORD=password
+      - VIOT_JWT_SECRET=secret
+      - VIOT_JWT_REFRESH_TOKEN_DOMAIN=localhost:8000
+    volumes:
+      - ./src/viot-api/tests:/code/tests
+      - ./src/viot-api/pyproject.toml:/code/pyproject.toml
+    networks:
+      - viot
+    depends_on:
+      - timescaledb
+      - redis
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: timescaledb
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./docker/timescale/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - viot
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - viot

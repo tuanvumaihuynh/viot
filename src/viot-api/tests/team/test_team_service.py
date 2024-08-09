@@ -126,7 +126,7 @@ async def test_update_team_error_not_owner(db: AsyncSession, user: ViotUser):
     with pytest.raises(PermissionDeniedException) as excinfo:
         await update(db=db, request=request, team_id=created_team.id, user_id=user.id)
 
-    assert str(excinfo.value) == "User is not owner of this team."
+    assert str(excinfo.value) == "User is not owner of this team"
 
 
 async def test_delete_default_team_error(db: AsyncSession, user: ViotUser):
@@ -143,7 +143,7 @@ async def test_delete_default_team_error(db: AsyncSession, user: ViotUser):
     with pytest.raises(BadRequestException) as excinfo:
         await delete(db=db, team_id=created_team.id, user_id=user.id)
 
-    assert str(excinfo.value) == "Cannot delete default team."
+    assert str(excinfo.value) == "Cannot delete default team"
 
 
 async def test_delete_team_success(db: AsyncSession, user: ViotUser):
@@ -167,7 +167,7 @@ async def test_delete_team_success(db: AsyncSession, user: ViotUser):
     with pytest.raises(BadRequestException) as excinfo:
         await get_or_raise(db=db, id=created_team_2.id)
 
-    assert str(excinfo.value) == "Team not found."
+    assert str(excinfo.value) == "Team not found"
 
 
 async def test_delete_team_error_not_owner(db: AsyncSession, user: ViotUser):
@@ -194,4 +194,4 @@ async def test_delete_team_error_not_owner(db: AsyncSession, user: ViotUser):
     with pytest.raises(PermissionDeniedException) as excinfo:
         await delete(db=db, team_id=created_team.id, user_id=user.id)
 
-    assert str(excinfo.value) == "User is not owner of this team."
+    assert str(excinfo.value) == "User is not owner of this team"
