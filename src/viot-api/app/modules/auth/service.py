@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import delete as sa_delete
@@ -244,7 +244,7 @@ async def get_by_email_or_raise(*, db: AsyncSession, email: str) -> ViotUser:
     user = await get_by_email(db=db, email=email)
     if user is None:
         logger.warning(f"User with email {email} not found")
-        raise BadRequestException(message="User with this email not exist.")
+        raise BadRequestException(message="User with this email not exist")
     return user
 
 
@@ -259,7 +259,7 @@ async def get_or_raise(*, db: AsyncSession, user_id: UUID, team_id: UUID | None 
     user = await get(db=db, user_id=user_id, team_id=team_id)
     if user is None:
         logger.warning(f"User with id {user_id} not found")
-        raise BadRequestException(message="User with this id not exist.")
+        raise BadRequestException(message="User with this id not exist")
     return user
 
 
