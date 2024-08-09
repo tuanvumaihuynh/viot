@@ -8,7 +8,6 @@ from app.modules.team.models import Team
 
 from .constants import TEAM_ROLE_OWNER, TEAM_ROLE_OWNER_DESCRIPTION
 from .models import Permission, Role, RolePermission
-from .schemas import RoleCreateRequest
 
 
 async def is_team_owner(*, db: AsyncSession, user_id: UUID, team_id: UUID) -> bool:
