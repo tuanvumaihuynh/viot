@@ -45,6 +45,9 @@ RUN chown -R viot:viot /code
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 COPY ${PROJECT_DIR}/app /code/app
 
+# Add alembic for migrations
+COPY ${PROJECT_DIR}/alembic.ini /code
+
 ENV PYTHONPATH=':$PYTHONPATH:.'
 
 USER viot
