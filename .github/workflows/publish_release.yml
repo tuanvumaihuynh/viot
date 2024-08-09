@@ -35,8 +35,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
-      - name: Build and push docker image
-        id: push
+      - name: Build and Push viot-api Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -45,5 +44,13 @@ jobs:
           tags: |
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:latest
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-api:${{ env.RELEASE_VERSION }}
+
+      - name: Build and Push viot-celery Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/viot/celery.dockerfile
+          push: true
+          tags: |
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-celery:latest
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/viot-celery:${{ env.RELEASE_VERSION }}
