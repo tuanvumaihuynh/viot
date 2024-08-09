@@ -72,7 +72,7 @@ class ChangePwdRequest(BaseRequest):
     old_password: str = Field(..., min_length=8, max_length=20)
     new_password: str = Field(..., min_length=8, max_length=20)
 
-    @model_validator(mode="before")
+    @model_validator(mode="after")
     def validate_passwords(self) -> Self:
         if self.old_password == self.new_password:
             raise ValueError("Old password and new password must be different")
