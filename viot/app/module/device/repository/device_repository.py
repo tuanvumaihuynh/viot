@@ -1,8 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import delete, exists, select
+from sqlalchemy import delete, exists, select, update
 
 from app.database.repository import PageableRepository
+from app.module.device.constants import DeviceStatus
 
 from ..model.device import Device
 
@@ -19,3 +20,7 @@ class DeviceRepository(PageableRepository[Device, UUID]):
     async def exists_by_id_and_team_id(self, device_id: UUID, team_id: UUID) -> bool:
         stmt = select(exists().where(Device.id == device_id, Device.team_id == team_id))
         return (await self.session.execute(stmt)).scalar() or False
+
+    async def update_device_status(self, status: DeviceStatus) -> None:
+        stmt = update(Device).values(status=status)
+        await self.session.execute(stmt)

@@ -17,7 +17,10 @@ class MqttWhitelistService:
         self._whitelist: dict[UUID, str] = {}
         self._load(emqx_settings.MQTT_WHITELIST_FILE_PATH)
 
-    def check_is_in_whitelist(self, device_id: UUID, access_token: str) -> bool:
+    def is_in_whitelist(self, device_id: UUID) -> bool:
+        return device_id in self._whitelist
+
+    def validate_mqtt_client(self, device_id: UUID, access_token: str) -> bool:
         return self._whitelist.get(device_id) == access_token
 
     def _load(self, path: str) -> None:
