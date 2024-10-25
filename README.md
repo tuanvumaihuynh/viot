@@ -4,8 +4,8 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 
-[![ci](https://github.com/vuxmai/viot/actions/workflows/viot-test.yml/badge.svg)](https://github.com/vuxmai/viot/actions/workflows/viot-test.yml)
-[![codecov](https://codecov.io/gh/vuxmai/viot/graph/badge.svg?token=SR54J5DMWD)](https://codecov.io/gh/vuxmai/viot)
+[![ci](https://github.com/tuanvumaihuynh/viot/actions/workflows/viot-test.yml/badge.svg)](https://github.com/tuanvumaihuynh/viot/actions/workflows/viot-test.yml)
+[![codecov](https://codecov.io/gh/tuanvumaihuynh/viot/graph/badge.svg?token=SR54J5DMWD)](https://codecov.io/gh/tuanvumaihuynh/viot)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vuxmai_viot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=vuxmai_viot)
 
 > `Viot` is a project aimed at practicing the development of an IoT application.
