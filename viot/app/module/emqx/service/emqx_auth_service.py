@@ -46,9 +46,9 @@ class EmqxDeviceAuthService:
         device: Device | None = None
 
         # Check if the device is in the whitelist
-        if self._mqtt_whitelist_service.check_is_in_whitelist(
+        if self._mqtt_whitelist_service.validate_mqtt_client(
             request_dto.device_id, request_dto.username
-        ) or self._mqtt_whitelist_service.check_is_in_whitelist(
+        ) or self._mqtt_whitelist_service.validate_mqtt_client(
             request_dto.device_id, request_dto.password
         ):
             return EmqxAuthenResponseDto(result="allow", is_superuser=True)
