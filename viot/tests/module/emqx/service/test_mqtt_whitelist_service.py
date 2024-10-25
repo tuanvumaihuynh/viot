@@ -88,24 +88,31 @@ def test_load_unknown_exception(caplog: pytest.LogCaptureFixture) -> None:
         assert "Unexpected Error" in caplog.text
 
 
-def test_check_is_in_whitelist(mock_valid_whitelist_content: str) -> None:
+def test_is_in_whitelist(mock_valid_whitelist_content: str) -> None:
+    with mock.patch("builtins.open", mock.mock_open(read_data=mock_valid_whitelist_content)):
+        service = MqttWhitelistService()
+
+        assert service.is_in_whitelist(UUID("123e4567-e89b-12d3-a456-426614174000")) is True
+        assert service.is_in_whitelist(UUID("123e4567-e89b-12d3-a456-426614174001")) is True
+        assert service.is_in_whitelist(UUID("123e4567-e89b-12d3-a456-426614174999")) is False
+
+
+def test_validate_mqtt_client(mock_valid_whitelist_content: str) -> None:
     with mock.patch("builtins.open", mock.mock_open(read_data=mock_valid_whitelist_content)):
         service = MqttWhitelistService()
 
         # Valid check
         assert (
-            service.check_is_in_whitelist(UUID("123e4567-e89b-12d3-a456-426614174000"), "token123")
+            service.validate_mqtt_client(UUID("123e4567-e89b-12d3-a456-426614174000"), "token123")
             is True
         )
         # Invalid token check
         assert (
-            service.check_is_in_whitelist(
-                UUID("123e4567-e89b-12d3-a456-426614174000"), "wrongtoken"
-            )
+            service.validate_mqtt_client(UUID("123e4567-e89b-12d3-a456-426614174000"), "wrongtoken")
             is False
         )
         # Non-existent device_id
         assert (
-            service.check_is_in_whitelist(UUID("123e4567-e89b-12d3-a456-426614174999"), "token999")
+            service.validate_mqtt_client(UUID("123e4567-e89b-12d3-a456-426614174999"), "token999")
             is False
         )

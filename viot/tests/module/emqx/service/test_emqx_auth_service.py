@@ -64,7 +64,7 @@ async def test_authenticate_device_in_whitelist(
     emqx_authen_request_dto: EmqxAuthenRequestDto,
 ) -> None:
     # given
-    mock_mqtt_whitelist_service.check_is_in_whitelist = Mock(return_value=True)
+    mock_mqtt_whitelist_service.validate_mqtt_client = Mock(return_value=True)
 
     # when
     response = await emqx_device_auth_service.authenticate(request_dto=emqx_authen_request_dto)
@@ -85,7 +85,7 @@ async def test_authenticate_device_not_found(
 ) -> None:
     # given
     mock_device_repository.find = AsyncMock(return_value=None)
-    mock_mqtt_whitelist_service.check_is_in_whitelist = Mock(return_value=False)
+    mock_mqtt_whitelist_service.validate_mqtt_client = Mock(return_value=False)
 
     # when
     with pytest.raises(DeviceNotFoundException):
@@ -100,7 +100,7 @@ async def test_authenticate_device_credentials_invalid(
     emqx_authen_request_dto: EmqxAuthenRequestDto,
 ) -> None:
     # given
-    mock_mqtt_whitelist_service.check_is_in_whitelist = Mock(return_value=False)
+    mock_mqtt_whitelist_service.validate_mqtt_client = Mock(return_value=False)
     mock_device_repository.find = AsyncMock(id=uuid4(), token="valid_token", disabled=False)
 
     # when
@@ -119,7 +119,7 @@ async def test_authenticate_device_disabled(
     emqx_authen_request_dto: EmqxAuthenRequestDto,
 ) -> None:
     # given
-    mock_mqtt_whitelist_service.check_is_in_whitelist = Mock(return_value=False)
+    mock_mqtt_whitelist_service.validate_mqtt_client = Mock(return_value=False)
     mock_device_repository.find = AsyncMock(
         return_value=Mock(id=uuid4(), token="valid_token", disabled=True)
     )
@@ -140,7 +140,7 @@ async def test_authenticate_success(
     emqx_authen_request_dto: EmqxAuthenRequestDto,
 ) -> None:
     # given
-    mock_mqtt_whitelist_service.check_is_in_whitelist = Mock(return_value=False)
+    mock_mqtt_whitelist_service.validate_mqtt_client = Mock(return_value=False)
     mock_device_repository.find = AsyncMock(
         return_value=Mock(id=uuid4(), token="valid_token", disabled=False)
     )
