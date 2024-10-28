@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - queries: "./db/queries"
+    schema: "./db/schema.sql"
+    engine: "postgresql"
+    gen:
+      go:
+        out: "./db/repository"
+        sql_package: "pgx/v5"
+        emit_interface: true
+        emit_result_struct_pointers: true
+        emit_pointers_for_null_types: true
+        omit_unused_structs: true
