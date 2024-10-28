@@ -6,15 +6,17 @@ from sqlalchemy import (
     BIGINT,
     BOOLEAN,
     DOUBLE_PRECISION,
+    SMALLINT,
     TEXT,
     DateTime,
     ForeignKey,
-    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
+
+from ..constants import DeviceAttributeScope
 
 
 class DeviceAttribute(Base):
@@ -24,18 +26,13 @@ class DeviceAttribute(Base):
         ForeignKey("devices.id", ondelete="CASCADE"), primary_key=True
     )
     key: Mapped[str] = mapped_column(TEXT, primary_key=True)
+    scope: Mapped[DeviceAttributeScope] = mapped_column(SMALLINT, primary_key=True)
     last_update: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     bool_v: Mapped[bool | None] = mapped_column(BOOLEAN)
     str_v: Mapped[str | None] = mapped_column(TEXT)
     long_v: Mapped[int | None] = mapped_column(BIGINT)
     double_v: Mapped[float | None] = mapped_column(DOUBLE_PRECISION)
     json_v: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
-    device_can_edit: Mapped[bool] = mapped_column(BOOLEAN, insert_default=True)
-
-    __table_args__ = (
-        Index("device_attribute_device_id_idx", "device_id"),
-        Index("device_attribute_device_id_key_idx", "device_id", "key"),
-    )
 
     @property
     def value(self) -> bool | str | int | float | dict[str, Any] | None:

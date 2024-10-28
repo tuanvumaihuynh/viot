@@ -1,6 +1,19 @@
 from enum import IntEnum, StrEnum
 
 
+class DeviceAttributeScope(IntEnum):
+    """Device attribute scope
+
+    SERVER_SCOPE = 0
+    SHARED_SCOPE = 1
+    CLIENT_SCOPE = 2
+    """
+
+    SERVER_SCOPE = 0
+    SHARED_SCOPE = 1
+    CLIENT_SCOPE = 2
+
+
 class ConnectStatus(IntEnum):
     """Connect status
 
