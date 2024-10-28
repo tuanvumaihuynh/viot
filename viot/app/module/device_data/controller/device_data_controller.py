@@ -11,7 +11,8 @@ from app.database.dependency import DependSession
 from app.module.auth.dependency import RequireTeamPermission
 from app.module.auth.permission import TeamDeviceDataPermission
 
-from ..dto.device_attribute_dto import DeviceAttributeDto
+from ..constants import DeviceAttributeScope
+from ..dto.device_attribute_dto import DeviceAttributeDto, ScopeKeysDto
 from ..dto.device_data_dto import (
     DataPointDto,
     KeySetQuery,
@@ -41,22 +42,55 @@ class DeviceDataController(Controller):
         "/{device_id}/attributes/keys",
         summary="Get all keys",
         status_code=200,
-        responses={200: {"model": set[str]}},
+        responses={200: {"model": ScopeKeysDto}},
         dependencies=[RequireTeamPermission(TeamDeviceDataPermission.READ)],
     )
     async def get_all_attribute_keys(
         self,
         *,
         device_id: Annotated[UUID, Path(...)],
-    ) -> JSONResponse[set[str]]:
-        """Get all attribute keys"""
+    ) -> JSONResponse[ScopeKeysDto]:
+        """
+        Get all attribute keys
+
+        Returns a set of unique keys for the device attributes.
+        The responses will include key names set for all attribute scopes:
+        - SERVER_SCOPE
+        - SHARED_SCOPE
+        - CLIENT_SCOPE
+        """
         return JSONResponse(
-            content=await self._device_attribute_service.get_all_keys(device_id=device_id),
+            content=await self._device_attribute_service.get_all_keys_by_device_id(
+                device_id=device_id
+            ),
             status_code=200,
         )
 
     @get(
-        "/{device_id}/attributes",
+        "/{device_id}/attributes/keys/{scope}",
+        summary="Get keys by scope",
+        status_code=200,
+        responses={200: {"model": set[str]}},
+        dependencies=[RequireTeamPermission(TeamDeviceDataPermission.READ)],
+    )
+    async def get_keys_by_scope(
+        self,
+        *,
+        device_id: Annotated[UUID, Path(...)],
+        scope: Annotated[
+            DeviceAttributeScope,
+            Path(..., description="0: SERVER_SCOPE, 1: SHARED_SCOPE, 2: CLIENT_SCOPE"),
+        ],
+    ) -> JSONResponse[set[str]]:
+        """Get keys by scope"""
+        return JSONResponse(
+            content=await self._device_attribute_service.get_all_key_by_scope_and_device_id(
+                device_id=device_id, scope=scope
+            )
+        )
+
+    @get(
+        "/{device_id}/attributes/{scope}",
         summary="Get all attributes by keys",
         status_code=200,
         responses={200: {"model": list[DeviceAttributeDto]}},
@@ -66,12 +100,22 @@ class DeviceDataController(Controller):
         self,
         *,
         device_id: Annotated[UUID, Path(...)],
+        scope: Annotated[
+            DeviceAttributeScope,
+            Path(..., description="0: SERVER_SCOPE, 1: SHARED_SCOPE, 2: CLIENT_SCOPE"),
+        ],
         keys: KeySetQuery,
     ) -> JSONResponse[list[DeviceAttributeDto]]:
-        """Get all attributes by keys"""
+        """
+        Returns all attributes of a specified scope. List of possible attribute scopes
+        depends on the entity type:
+        - SERVER_SCOPE
+        - SHARED_SCOPE
+        - CLIENT_SCOPE
+        """
         return JSONResponse(
             content=await self._device_attribute_service.get_all_by_device_id(
-                device_id=device_id, keys=keys
+                device_id=device_id, keys=keys, scope=scope
             ),
             status_code=200,
         )
