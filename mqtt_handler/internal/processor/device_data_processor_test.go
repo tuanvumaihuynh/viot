@@ -14,22 +14,23 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	mockdb "github.com/vuxmai/viot/mqtt_handler/db/mock"
 	"github.com/vuxmai/viot/mqtt_handler/db/repository"
 	"github.com/vuxmai/viot/mqtt_handler/pkg/config"
 )
 
 const (
-	DefaultMaxBatchSize       = 2
-	DefaultMaxBatchIntervalMs = 10
-	TestDeviceDataKey         = "temperature"
-	TestDoubleValue           = 22.5
+	DeviceDataMaxBatchSize       = 2
+	DeviceDataMaxBatchIntervalMs = 10
+	TestDeviceDataKey            = "temperature"
+	TestDoubleValue              = 22.5
 )
 
 // Creates a new DeviceDataProcessorConfig with default values
 func defaultDeviceDataProcessorConfig() *config.DeviceDataProcessorConfig {
 	return &config.DeviceDataProcessorConfig{
-		MaxBatchSize:       DefaultMaxBatchSize,
-		MaxBatchIntervalMs: DefaultMaxBatchIntervalMs,
+		MaxBatchSize:       DeviceDataMaxBatchSize,
+		MaxBatchIntervalMs: DeviceDataMaxBatchIntervalMs,
 	}
 }
 
@@ -43,15 +44,6 @@ func newTestBatchInsertParam() repository.BatchInsertDeviceDataParams {
 	}
 	*param.DoubleV = TestDoubleValue
 	return param
-}
-
-type MockStore struct {
-	mock.Mock
-}
-
-func (m *MockStore) BatchInsertDeviceData(ctx context.Context, batch []repository.BatchInsertDeviceDataParams) error {
-	args := m.Called(ctx, batch)
-	return args.Error(0)
 }
 
 func TestConvertDeviceDataMsgToBatchParams(t *testing.T) {
@@ -134,7 +126,7 @@ func TestConvertDeviceDataMsgToBatchParams_InvalidDeviceID(t *testing.T) {
 func TestDeviceDataProcessor_Start(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 
-	mockStore := new(MockStore)
+	mockStore := mockdb.NewStore(t)
 	cfg := defaultDeviceDataProcessorConfig()
 	payloadQueue := make(chan []byte)
 	processor := NewDeviceDataProcessor(payloadQueue, logger)
@@ -224,8 +216,8 @@ func TestDeviceDataProcessor_ConvertWorker_QuitChannel(t *testing.T) {
 func TestDeviceDataProcessor_BatchInsertWorker(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 
-	mockStore := new(MockStore)
-	cfg := &config.DeviceDataProcessorConfig{MaxBatchSize: 2, MaxBatchIntervalMs: 10}
+	mockStore := mockdb.NewStore(t)
+	cfg := defaultDeviceDataProcessorConfig()
 	payloadQueue := make(chan []byte)
 	processor := NewDeviceDataProcessor(payloadQueue, logger)
 
@@ -250,7 +242,7 @@ func TestDeviceDataProcessor_BatchInsertWorker(t *testing.T) {
 func TestDeviceDataProcessor_BatchInsertWorker_QuitChannel(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 
-	mockStore := new(MockStore)
+	mockStore := mockdb.NewStore(t)
 	cfg := &config.DeviceDataProcessorConfig{MaxBatchSize: 2, MaxBatchIntervalMs: 10}
 	payloadQueue := make(chan []byte)
 	processor := NewDeviceDataProcessor(payloadQueue, logger)
@@ -286,7 +278,7 @@ func TestProcessBatch_Error(t *testing.T) {
 	)
 	logger := zap.New(core)
 
-	mockStore := new(MockStore)
+	mockStore := mockdb.NewStore(t)
 
 	batch := []repository.BatchInsertDeviceDataParams{
 		{Key: "temperature", DoubleV: new(float64)},

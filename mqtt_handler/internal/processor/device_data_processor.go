@@ -21,8 +21,6 @@ type deviceDataMsg struct {
 }
 
 type deviceDataProcessor struct {
-	Worker
-
 	payloadQueue chan []byte
 	paramQueue   chan repository.BatchInsertDeviceDataParams
 	quitCh       chan bool
@@ -100,6 +98,7 @@ func (w *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config
 		case <-w.quitCh:
 			go processBatch(ctx, store, batch, w.logger)
 			batch = nil
+			return
 		}
 	}
 }
