@@ -14,7 +14,10 @@ import (
 	"github.com/vuxmai/viot/mqtt_handler/pkg/logger"
 )
 
-const DeviceDataMqttTopic = "v2/private/device_data"
+const (
+	DeviceDataMqttTopic      = "v2/private/device_data"
+	DeviceAttributeMqttTopic = "v2/private/device_attribute"
+)
 
 func NewMqttClient(cfg *config.MqttConfig, logger *zap.Logger) mqtt.Client {
 	opts := mqtt.NewClientOptions()
@@ -59,10 +62,14 @@ func main() {
 
 	// Channel
 	deviceDataCh := make(chan []byte, 10000)
+	deviceAttributeCh := make(chan []byte, 10000)
 
 	// Worker
 	deviceDataProcessor := processor.NewDeviceDataProcessor(deviceDataCh, logger)
+	deviceAttributeProcessor := processor.NewDeviceAttributeProcessor(deviceAttributeCh, logger)
+
 	deviceDataProcessor.Start(ctx, &cfg.DeviceDataProcessorConfig, store)
+	deviceAttributeProcessor.Start(ctx, &cfg.DeviceAttributeProcessorConfig, store)
 
 	// MQTT Client
 	client := NewMqttClient(&cfg.MqttConfig, logger)
@@ -72,7 +79,18 @@ func main() {
 		deviceDataCh <- msg.Payload()
 	})
 	if token.Wait() && token.Error() != nil {
-		logger.Info("Subscribe error", zap.Error(token.Error()))
+		logger.Info("Subscribe error",
+			zap.Error(token.Error()),
+			zap.String("topic", DeviceDataMqttTopic))
+	}
+
+	token = client.Subscribe(DeviceAttributeMqttTopic, 2, func(_ mqtt.Client, msg mqtt.Message) {
+		deviceAttributeCh <- msg.Payload()
+	})
+	if token.Wait() && token.Error() != nil {
+		logger.Info("Subscribe error",
+			zap.Error(token.Error()),
+			zap.String("topic", DeviceAttributeMqttTopic))
 	}
 
 	select {}

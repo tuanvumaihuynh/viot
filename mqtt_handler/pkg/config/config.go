@@ -17,7 +17,8 @@ type Config struct {
 	PostgresDsn string `env:"POSTGRES_DSN"`
 	MqttConfig  MqttConfig
 
-	DeviceDataProcessorConfig DeviceDataProcessorConfig
+	DeviceDataProcessorConfig      DeviceDataProcessorConfig
+	DeviceAttributeProcessorConfig DeviceAttributeProcessorConfig
 }
 
 type MqttConfig struct {
@@ -28,8 +29,13 @@ type MqttConfig struct {
 }
 
 type DeviceDataProcessorConfig struct {
-	MaxBatchSize       int `env:"MAX_BATCH_SIZE" envDefault:"500"`
-	MaxBatchIntervalMs int `env:"MAX_BATCH_INTERVAL_SEC" envDefault:"2000"`
+	MaxBatchSize       int `env:"DEVICE_DATA_PROCESSOR_MAX_BATCH_SIZE" envDefault:"2000"`
+	MaxBatchIntervalMs int `env:"DEVICE_DATA_PROCESSOR_MAX_BATCH_INTERVAL_MS" envDefault:"2000"`
+}
+
+type DeviceAttributeProcessorConfig struct {
+	MaxBatchSize       int `env:"DEVICE_ATTRIBUTE_PROCESSOR_MAX_BATCH_SIZE" envDefault:"2000"`
+	MaxBatchIntervalMs int `env:"DEVICE_ATTRIBUTE_PROCESSOR_MAX_BATCH_INTERVAL_MS" envDefault:"2000"`
 }
 
 func LoadConfig() *Config {

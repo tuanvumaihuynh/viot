@@ -12,7 +12,8 @@ import (
 const batchInsertDeviceData = `
 INSERT INTO device_data (device_id, ts, key, bool_v, str_v, long_v, double_v, json_v)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT DO NOTHING
+ON CONFLICT (device_id, ts, key)
+DO NOTHING;
 `
 
 type BatchInsertDeviceDataParams struct {

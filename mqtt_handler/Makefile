@@ -7,4 +7,7 @@ test:
 server:
 	go run cmd/main.go
 
-.PHONY: sqlc test server
+mock:
+	mockery --name=Store --dir=./db/repository --output=./db/mock --outpkg=mockdb --case=underscore
+
+.PHONY: sqlc test server mock
