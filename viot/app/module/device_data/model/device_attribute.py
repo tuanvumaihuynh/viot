@@ -10,6 +10,7 @@ from sqlalchemy import (
     TEXT,
     DateTime,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -33,6 +34,12 @@ class DeviceAttribute(Base):
     long_v: Mapped[int | None] = mapped_column(BIGINT)
     double_v: Mapped[float | None] = mapped_column(DOUBLE_PRECISION)
     json_v: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+
+    __table_args__ = (
+        UniqueConstraint(
+            "device_id", "key", "scope", name="device_attribute_device_id_key_scope_unique"
+        ),
+    )
 
     @property
     def value(self) -> bool | str | int | float | dict[str, Any] | None:
