@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"go.uber.org/zap"
 
-	"github.com/vuxmai/viot/mqtt_handler/db/repository"
-	"github.com/vuxmai/viot/mqtt_handler/pkg/config"
+	"github.com/vuxmai/viot/viot-background/db/repository"
+	"github.com/vuxmai/viot/viot-background/pkg/config"
 )
 
 type deviceDataMsg struct {

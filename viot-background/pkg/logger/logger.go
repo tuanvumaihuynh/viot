@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/vuxmai/viot/mqtt_handler/pkg/config"
+	"github.com/vuxmai/viot/viot-background/pkg/config"
 )
 
 func NewZapLogger(environment string) *zap.Logger {

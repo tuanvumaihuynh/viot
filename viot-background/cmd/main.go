@@ -8,10 +8,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 
-	"github.com/vuxmai/viot/mqtt_handler/db/repository"
-	"github.com/vuxmai/viot/mqtt_handler/internal/processor"
-	"github.com/vuxmai/viot/mqtt_handler/pkg/config"
-	"github.com/vuxmai/viot/mqtt_handler/pkg/logger"
+	"github.com/vuxmai/viot/viot-background/db/repository"
+	"github.com/vuxmai/viot/viot-background/internal/processor"
+	"github.com/vuxmai/viot/viot-background/pkg/config"
+	"github.com/vuxmai/viot/viot-background/pkg/logger"
 )
 
 const (

@@ -1,4 +1,4 @@
-module github.com/vuxmai/viot/mqtt_handler
+module github.com/vuxmai/viot/viot-background
 
 go 1.23.2
 

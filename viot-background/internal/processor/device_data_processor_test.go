@@ -14,9 +14,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	mockdb "github.com/vuxmai/viot/mqtt_handler/db/mock"
-	"github.com/vuxmai/viot/mqtt_handler/db/repository"
-	"github.com/vuxmai/viot/mqtt_handler/pkg/config"
+	mockdb "github.com/vuxmai/viot/viot-background/db/mock"
+	"github.com/vuxmai/viot/viot-background/db/repository"
+	"github.com/vuxmai/viot/viot-background/pkg/config"
 )
 
 const (
