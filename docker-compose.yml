@@ -169,3 +169,27 @@ services:
       viot:
         aliases:
           - viot-celery
+
+  viot-background:
+    build:
+      context: .
+      dockerfile: ./docker/viot-background/Dockerfile
+    container_name: viot-background
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=development
+      - POSTGRES_DSN=postgres://postgres:postgres@timescaledb:5432/postgres
+      - MQTT_BROKER_URL=tcp://emqx:1883
+      - MQTT_CLIENT_ID=b348a2b5-5e1f-47bb-95d0-452002a78611
+      - MQTT_USERNAME=ABCD123
+      - MQTT_PASSWORD=ABCD123
+      - DEVICE_DATA_PROCESSOR_MAX_BATCH_SIZE=5000
+      - DEVICE_DATA_PROCESSOR_MAX_BATCH_INTERVAL_MS=2000
+      - DEVICE_ATTRIBUTE_PROCESSOR_MAX_BATCH_SIZE=5000
+      - DEVICE_ATTRIBUTE_PROCESSOR_MAX_BATCH_INTERVAL_MS=2000
+    depends_on:
+      - emqx
+    networks:
+      viot:
+        aliases:
+          - viot-background
