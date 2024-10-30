@@ -135,5 +135,62 @@ rule_engine {
         FROM
           "$events/client_disconnected"~"""
     }
+    device_data {
+      actions = [
+        {
+          args {
+            direct_dispatch = true
+            mqtt_properties {}
+            payload = """{"device_id": "${clientid}", "ts": "${ts}", "data": ${p}}"""
+            qos = 2
+            retain = true
+            topic = "v2/private/device_data"
+            user_properties = ""
+          }
+          function = republish
+        }
+      ]
+      description = ""
+      enable = true
+      metadata {created_at = 1730256192783}
+      sql = """~
+        SELECT
+            clientid,
+            CASE
+              WHEN is_null(payload.ts) THEN now_rfc3339('millisecond')
+              ELSE format_date('millisecond', 'Z', '%Y-%m-%dT%H:%M:%S.%3N%:z', payload.ts)
+            END as ts,
+            CASE
+              WHEN is_null(payload.ts) THEN json_decode(payload)
+              ELSE payload.values
+            END as p
+        FROM
+            "v2/devices/me/data"~"""
+    }
+    device_attribute {
+      actions = [
+        {
+          args {
+            direct_dispatch = true
+            mqtt_properties {}
+            payload = """{"device_id": "${clientid}", "attributes": ${p}}"""
+            qos = 2
+            retain = true
+            topic = "v2/private/device_attribute"
+            user_properties = ""
+          }
+          function = republish
+        }
+      ]
+      description = ""
+      enable = true
+      metadata {created_at = 1730259649238}
+      sql = """~
+        SELECT
+            clientid,
+            json_decode(payload) as p
+        FROM
+            "v2/devices/me/attributes"~"""
+    }
   }
 }
