@@ -36,44 +36,44 @@ func NewDeviceDataProcessor(payloadQueue chan []byte, logger *zap.Logger) *devic
 	}
 }
 
-func (w *deviceDataProcessor) Start(ctx context.Context, cfg *config.DeviceDataProcessorConfig, store repository.Store) {
-	w.logger.Info("Device data Processor starting")
+func (p *deviceDataProcessor) Start(ctx context.Context, cfg *config.DeviceDataProcessorConfig, store repository.Store) {
+	p.logger.Info("Device data Processor starting")
 
-	go w.convertWorker(ctx)
-	go w.batchInsertWorker(ctx, cfg, store)
+	go p.convertWorker(ctx)
+	go p.batchInsertWorker(ctx, cfg, store)
 }
 
-func (w *deviceDataProcessor) convertWorker(ctx context.Context) {
+func (p *deviceDataProcessor) convertWorker(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case payload := <-w.payloadQueue:
+		case payload := <-p.payloadQueue:
 			var msg deviceDataMsg
 			if err := json.Unmarshal(payload, &msg); err != nil {
-				w.logger.Warn("failed to unmarshal device data msg", zap.Error(err))
+				p.logger.Warn("failed to unmarshal device data msg", zap.Error(err))
 				continue
 			}
 
 			batch, err := convertDeviceDataMsgToBatchParams(msg)
 			if err != nil {
-				w.logger.Warn("failed to convert device data msg", zap.Error(err))
+				p.logger.Warn("failed to convert device data msg", zap.Error(err))
 				continue
 			}
 
 			for _, param := range batch {
-				w.paramQueue <- param
+				p.paramQueue <- param
 			}
 
-		case <-w.quitCh:
-			w.logger.Info("DeviceDataWorker stopping")
+		case <-p.quitCh:
+			p.logger.Info("DeviceDataWorker stopping")
 			return
 		}
 	}
 }
 
-func (w *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config.DeviceDataProcessorConfig, store repository.Store) {
+func (p *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config.DeviceDataProcessorConfig, store repository.Store) {
 	ticker := time.NewTicker(time.Duration(cfg.MaxBatchIntervalMs * int(time.Millisecond)))
 	defer ticker.Stop()
 
@@ -84,19 +84,19 @@ func (w *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config
 		case <-ctx.Done():
 			return
 
-		case param := <-w.paramQueue:
+		case param := <-p.paramQueue:
 			batch = append(batch, param)
 			if len(batch) >= cfg.MaxBatchSize {
-				go processBatch(ctx, store, batch, w.logger)
+				go processBatch(ctx, store, batch, p.logger)
 				batch = nil
 			}
 
 		case <-ticker.C:
-			go processBatch(ctx, store, batch, w.logger)
+			go processBatch(ctx, store, batch, p.logger)
 			batch = nil
 
-		case <-w.quitCh:
-			go processBatch(ctx, store, batch, w.logger)
+		case <-p.quitCh:
+			go processBatch(ctx, store, batch, p.logger)
 			batch = nil
 			return
 		}
