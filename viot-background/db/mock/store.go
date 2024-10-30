@@ -16,7 +16,7 @@ type Store struct {
 }
 
 // BatchInsertDeviceData provides a mock function with given fields: ctx, arg
-func (_m *Store) BatchInsertDeviceData(ctx context.Context, arg []repository.BatchInsertDeviceDataParams) error {
+func (_m *Store) BatchInsertDeviceData(ctx context.Context, arg []repository.BatchInsertDeviceDataParam) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -24,7 +24,7 @@ func (_m *Store) BatchInsertDeviceData(ctx context.Context, arg []repository.Bat
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []repository.BatchInsertDeviceDataParams) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []repository.BatchInsertDeviceDataParam) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)
@@ -34,7 +34,7 @@ func (_m *Store) BatchInsertDeviceData(ctx context.Context, arg []repository.Bat
 }
 
 // BatchUpsertDeviceAttribute provides a mock function with given fields: ctx, arg
-func (_m *Store) BatchUpsertDeviceAttribute(ctx context.Context, arg []repository.BatchUpsertDeviceAttributeParams) error {
+func (_m *Store) BatchUpsertDeviceAttribute(ctx context.Context, arg []repository.BatchUpsertDeviceAttributeParam) error {
 	ret := _m.Called(ctx, arg)
 
 	if len(ret) == 0 {
@@ -42,7 +42,7 @@ func (_m *Store) BatchUpsertDeviceAttribute(ctx context.Context, arg []repositor
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []repository.BatchUpsertDeviceAttributeParams) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []repository.BatchUpsertDeviceAttributeParam) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)

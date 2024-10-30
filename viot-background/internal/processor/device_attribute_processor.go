@@ -15,13 +15,13 @@ import (
 )
 
 type deviceAttributeMsg struct {
-	DeviceId  string                 `json:"device_id"`
-	Data      map[string]interface{} `json:"attributes"`
+	DeviceId string                 `json:"device_id"`
+	Data     map[string]interface{} `json:"attributes"`
 }
 
 type deviceAttributeProcessor struct {
 	payloadQueue chan []byte
-	paramQueue   chan repository.BatchUpsertDeviceAttributeParams
+	paramQueue   chan repository.BatchUpsertDeviceAttributeParam
 	quitCh       chan bool
 	logger       *zap.Logger
 }
@@ -29,7 +29,7 @@ type deviceAttributeProcessor struct {
 func NewDeviceAttributeProcessor(payloadQueue chan []byte, logger *zap.Logger) *deviceAttributeProcessor {
 	return &deviceAttributeProcessor{
 		payloadQueue: payloadQueue,
-		paramQueue:   make(chan repository.BatchUpsertDeviceAttributeParams),
+		paramQueue:   make(chan repository.BatchUpsertDeviceAttributeParam),
 		quitCh:       make(chan bool),
 		logger:       logger,
 	}
@@ -76,7 +76,7 @@ func (p *deviceAttributeProcessor) batchUpsertWorker(ctx context.Context, cfg *c
 	ticker := time.NewTicker(time.Duration(cfg.MaxBatchIntervalMs * int(time.Millisecond)))
 	defer ticker.Stop()
 
-	batch := []repository.BatchUpsertDeviceAttributeParams{}
+	batch := []repository.BatchUpsertDeviceAttributeParam{}
 
 	for {
 		select {
@@ -102,8 +102,8 @@ func (p *deviceAttributeProcessor) batchUpsertWorker(ctx context.Context, cfg *c
 	}
 }
 
-func convertDeviceAttributeMsgToBatchParams(msg deviceAttributeMsg) ([]repository.BatchUpsertDeviceAttributeParams, error) {
-	batchParams := []repository.BatchUpsertDeviceAttributeParams{}
+func convertDeviceAttributeMsgToBatchParams(msg deviceAttributeMsg) ([]repository.BatchUpsertDeviceAttributeParam, error) {
+	batchParams := []repository.BatchUpsertDeviceAttributeParam{}
 
 	deviceUUID, err := uuid.Parse(msg.DeviceId)
 	if err != nil {
@@ -113,36 +113,23 @@ func convertDeviceAttributeMsgToBatchParams(msg deviceAttributeMsg) ([]repositor
 	ts := pgtype.Timestamptz{Time: time.Now(), Valid: true}
 
 	for key, value := range msg.Data {
-		param := repository.BatchUpsertDeviceAttributeParams{
+		param := repository.BatchUpsertDeviceAttributeParam{
 			DeviceID:   deviceUUID,
 			LastUpdate: ts,
 			Key:        key,
 			Scope:      repository.ClientScope,
 		}
 
-		switch v := value.(type) {
-		case bool:
-			param.BoolV = &v
-		case string:
-			param.StrV = &v
-		case int:
-			param.LongV = &v
-		case float32, float64:
-			floatValue := float64(v.(float64))
-			param.DoubleV = &floatValue
-		case map[string]interface{}:
-			param.JsonV = v
-		default:
-			return nil, fmt.Errorf("unsupported data type: %T", v)
+		if err := setParamValue(&param, value); err != nil {
+			return nil, err
 		}
-
 		batchParams = append(batchParams, param)
 	}
 
 	return batchParams, nil
 }
 
-func processDeviceAttributeBatch(ctx context.Context, store repository.Store, batch []repository.BatchUpsertDeviceAttributeParams, logger *zap.Logger) {
+func processDeviceAttributeBatch(ctx context.Context, store repository.Store, batch []repository.BatchUpsertDeviceAttributeParam, logger *zap.Logger) {
 	if len(batch) == 0 {
 		return
 	}

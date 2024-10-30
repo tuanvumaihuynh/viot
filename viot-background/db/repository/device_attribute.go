@@ -36,7 +36,7 @@ WHERE
     CAST(device_attribute.json_v AS TEXT) != CAST(EXCLUDED.json_v AS TEXT);
 `
 
-type BatchUpsertDeviceAttributeParams struct {
+type BatchUpsertDeviceAttributeParam struct {
 	DeviceID   uuid.UUID
 	Key        string
 	Scope      ScopeType
@@ -48,7 +48,13 @@ type BatchUpsertDeviceAttributeParams struct {
 	JsonV      map[string]interface{}
 }
 
-func (q *Queries) BatchUpsertDeviceAttribute(ctx context.Context, arg []BatchUpsertDeviceAttributeParams) error {
+func (p *BatchUpsertDeviceAttributeParam) SetBoolV(v *bool)                  { p.BoolV = v }
+func (p *BatchUpsertDeviceAttributeParam) SetStrV(v *string)                 { p.StrV = v }
+func (p *BatchUpsertDeviceAttributeParam) SetLongV(v *int)                   { p.LongV = v }
+func (p *BatchUpsertDeviceAttributeParam) SetDoubleV(v *float64)             { p.DoubleV = v }
+func (p *BatchUpsertDeviceAttributeParam) SetJsonV(v map[string]interface{}) { p.JsonV = v }
+
+func (q *Queries) BatchUpsertDeviceAttribute(ctx context.Context, arg []BatchUpsertDeviceAttributeParam) error {
 	batch := &pgx.Batch{}
 	for _, a := range arg {
 		vals := []interface{}{

@@ -22,7 +22,7 @@ type deviceDataMsg struct {
 
 type deviceDataProcessor struct {
 	payloadQueue chan []byte
-	paramQueue   chan repository.BatchInsertDeviceDataParams
+	paramQueue   chan repository.BatchInsertDeviceDataParam
 	quitCh       chan bool
 	logger       *zap.Logger
 }
@@ -30,7 +30,7 @@ type deviceDataProcessor struct {
 func NewDeviceDataProcessor(payloadQueue chan []byte, logger *zap.Logger) *deviceDataProcessor {
 	return &deviceDataProcessor{
 		payloadQueue: payloadQueue,
-		paramQueue:   make(chan repository.BatchInsertDeviceDataParams),
+		paramQueue:   make(chan repository.BatchInsertDeviceDataParam),
 		quitCh:       make(chan bool),
 		logger:       logger,
 	}
@@ -77,7 +77,7 @@ func (p *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config
 	ticker := time.NewTicker(time.Duration(cfg.MaxBatchIntervalMs * int(time.Millisecond)))
 	defer ticker.Stop()
 
-	var batch []repository.BatchInsertDeviceDataParams
+	var batch []repository.BatchInsertDeviceDataParam
 
 	for {
 		select {
@@ -103,8 +103,8 @@ func (p *deviceDataProcessor) batchInsertWorker(ctx context.Context, cfg *config
 	}
 }
 
-func convertDeviceDataMsgToBatchParams(msg deviceDataMsg) ([]repository.BatchInsertDeviceDataParams, error) {
-	batchParams := []repository.BatchInsertDeviceDataParams{}
+func convertDeviceDataMsgToBatchParams(msg deviceDataMsg) ([]repository.BatchInsertDeviceDataParam, error) {
+	batchParams := []repository.BatchInsertDeviceDataParam{}
 
 	deviceUUID, err := uuid.Parse(msg.DeviceId)
 	if err != nil {
@@ -114,35 +114,22 @@ func convertDeviceDataMsgToBatchParams(msg deviceDataMsg) ([]repository.BatchIns
 	ts := pgtype.Timestamptz{Time: msg.TimeStamp, Valid: true}
 
 	for key, value := range msg.Data {
-		param := repository.BatchInsertDeviceDataParams{
+		param := repository.BatchInsertDeviceDataParam{
 			DeviceID: deviceUUID,
 			Ts:       ts,
 			Key:      key,
 		}
 
-		switch v := value.(type) {
-		case bool:
-			param.BoolV = &v
-		case string:
-			param.StrV = &v
-		case int:
-			param.LongV = &v
-		case float32, float64:
-			floatValue := float64(v.(float64))
-			param.DoubleV = &floatValue
-		case map[string]interface{}:
-			param.JsonV = v
-		default:
-			return nil, fmt.Errorf("unsupported data type: %T", v)
+		if err := setParamValue(&param, value); err != nil {
+			return nil, err
 		}
-
 		batchParams = append(batchParams, param)
 	}
 
 	return batchParams, nil
 }
 
-func processBatch(ctx context.Context, store repository.Store, batch []repository.BatchInsertDeviceDataParams, logger *zap.Logger) {
+func processBatch(ctx context.Context, store repository.Store, batch []repository.BatchInsertDeviceDataParam, logger *zap.Logger) {
 	if len(batch) == 0 {
 		return
 	}

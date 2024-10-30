@@ -35,8 +35,8 @@ func defaultDeviceDataProcessorConfig() *config.DeviceDataProcessorConfig {
 }
 
 // Creates a new BatchInsertDeviceDataParams with default values
-func newTestBatchInsertParam() repository.BatchInsertDeviceDataParams {
-	param := repository.BatchInsertDeviceDataParams{
+func newTestBatchInsertParam() repository.BatchInsertDeviceDataParam {
+	param := repository.BatchInsertDeviceDataParam{
 		DeviceID: uuid.New(),
 		Ts:       pgtype.Timestamptz{Time: time.Now(), Valid: true},
 		Key:      TestDeviceDataKey,
@@ -280,7 +280,7 @@ func TestProcessBatch_Error(t *testing.T) {
 
 	mockStore := mockdb.NewStore(t)
 
-	batch := []repository.BatchInsertDeviceDataParams{
+	batch := []repository.BatchInsertDeviceDataParam{
 		{Key: "temperature", DoubleV: new(float64)},
 	}
 	*batch[0].DoubleV = 22.5

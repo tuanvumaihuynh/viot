@@ -16,7 +16,7 @@ ON CONFLICT (device_id, ts, key)
 DO NOTHING;
 `
 
-type BatchInsertDeviceDataParams struct {
+type BatchInsertDeviceDataParam struct {
 	DeviceID uuid.UUID
 	Ts       pgtype.Timestamptz
 	Key      string
@@ -27,7 +27,13 @@ type BatchInsertDeviceDataParams struct {
 	JsonV    map[string]interface{}
 }
 
-func (q *Queries) BatchInsertDeviceData(ctx context.Context, arg []BatchInsertDeviceDataParams) error {
+func (p *BatchInsertDeviceDataParam) SetBoolV(v *bool)                  { p.BoolV = v }
+func (p *BatchInsertDeviceDataParam) SetStrV(v *string)                 { p.StrV = v }
+func (p *BatchInsertDeviceDataParam) SetLongV(v *int)                   { p.LongV = v }
+func (p *BatchInsertDeviceDataParam) SetDoubleV(v *float64)             { p.DoubleV = v }
+func (p *BatchInsertDeviceDataParam) SetJsonV(v map[string]interface{}) { p.JsonV = v }
+
+func (q *Queries) BatchInsertDeviceData(ctx context.Context, arg []BatchInsertDeviceDataParam) error {
 	batch := &pgx.Batch{}
 	for _, a := range arg {
 		vals := []interface{}{

@@ -43,8 +43,8 @@ func TestConvertDeviceAttributeMsgToBatchParams(t *testing.T) {
 	}
 
 	msg := deviceAttributeMsg{
-		DeviceId:  uuid.New().String(),
-		Data:      attributes,
+		DeviceId: uuid.New().String(),
+		Data:     attributes,
 	}
 
 	params, err := convertDeviceAttributeMsgToBatchParams(msg)
@@ -76,7 +76,7 @@ func TestConvertDeviceAttributeMsgToBatchParams(t *testing.T) {
 
 func TestConvertDeviceAttributeMsgToBatchParams_InvalidDataType(t *testing.T) {
 	msg := deviceAttributeMsg{
-		DeviceId:  uuid.New().String(),
+		DeviceId: uuid.New().String(),
 		Data: map[string]interface{}{
 			"unsupported_value": complex(1, 2),
 		},
@@ -90,8 +90,8 @@ func TestConvertDeviceAttributeMsgToBatchParams_InvalidDataType(t *testing.T) {
 
 func TestConvertDeviceAttributeMsgToBatchParams_InvalidDeviceID(t *testing.T) {
 	msg := deviceAttributeMsg{
-		DeviceId:  "invalid-uuid",
-		Data:      map[string]interface{}{},
+		DeviceId: "invalid-uuid",
+		Data:     map[string]interface{}{},
 	}
 
 	params, err := convertDeviceAttributeMsgToBatchParams(msg)
@@ -117,7 +117,7 @@ func TestDeviceAttributeProcessor_Start(t *testing.T) {
 
 	// Simulate sending payload to processor
 	payload := deviceAttributeMsg{
-		DeviceId:  uuid.New().String(),
+		DeviceId: uuid.New().String(),
 		Data: map[string]interface{}{
 			"attr1": 22.5,
 			"attr2": true,
@@ -189,28 +189,32 @@ func TestDeviceAttributeProcessor_ConvertWorker_QuitChannel(t *testing.T) {
 	// No panic should occur
 }
 
-func TestDeviceAttributeProcessor_BatchUpsertWorker(t *testing.T) {
+func setupDeviceAttributeProcessorBatchUpsertTest(t *testing.T) (context.Context, context.CancelFunc, *config.DeviceAttributeProcessorConfig, *deviceAttributeProcessor, *mockdb.Store, repository.BatchUpsertDeviceAttributeParam) {
 	logger, _ := zap.NewDevelopment()
-
 	mockStore := mockdb.NewStore(t)
 	cfg := defaultDeviceAttributeProcessorConfig()
 	payloadQueue := make(chan []byte)
 	processor := NewDeviceAttributeProcessor(payloadQueue, logger)
-
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
-	mockStore.On("BatchUpsertDeviceAttribute", mock.Anything, mock.Anything).Return(nil).Once()
-
-	go processor.batchUpsertWorker(ctx, cfg, mockStore)
-
-	param := repository.BatchUpsertDeviceAttributeParams{
+	param := repository.BatchUpsertDeviceAttributeParam{
 		DeviceID:   uuid.New(),
 		LastUpdate: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 		Key:        "attr1",
 		Scope:      repository.ClientScope,
 		DoubleV:    new(float64),
 	}
+
+	return ctx, cancel, cfg, processor, mockStore, param
+}
+
+func TestDeviceAttributeProcessor_BatchUpsertWorker(t *testing.T) {
+	ctx, cancel, cfg, processor, mockStore, param := setupDeviceAttributeProcessorBatchUpsertTest(t)
+	defer cancel()
+
+	mockStore.On("BatchUpsertDeviceAttribute", mock.Anything, mock.Anything).Return(nil).Once()
+
+	go processor.batchUpsertWorker(ctx, cfg, mockStore)
 
 	processor.paramQueue <- param
 
@@ -222,27 +226,12 @@ func TestDeviceAttributeProcessor_BatchUpsertWorker(t *testing.T) {
 }
 
 func TestDeviceAttributeProcessor_BatchUpsertWorker_QuitChannel(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-
-	mockStore := mockdb.NewStore(t)
-	cfg := defaultDeviceAttributeProcessorConfig()
-	payloadQueue := make(chan []byte)
-	processor := NewDeviceAttributeProcessor(payloadQueue, logger)
-
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel, cfg, processor, mockStore, param := setupDeviceAttributeProcessorBatchUpsertTest(t)
 	defer cancel()
 
 	mockStore.On("BatchUpsertDeviceAttribute", mock.Anything, mock.Anything).Return(nil).Once()
 
 	go processor.batchUpsertWorker(ctx, cfg, mockStore)
-
-	param := repository.BatchUpsertDeviceAttributeParams{
-		DeviceID:   uuid.New(),
-		LastUpdate: pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		Key:        "attr1",
-		Scope:      repository.ClientScope,
-		DoubleV:    new(float64),
-	}
 
 	processor.paramQueue <- param
 
@@ -268,7 +257,7 @@ func TestProcessDeviceAttributeBatch_Error(t *testing.T) {
 
 	mockStore := mockdb.NewStore(t)
 
-	batch := []repository.BatchUpsertDeviceAttributeParams{
+	batch := []repository.BatchUpsertDeviceAttributeParam{
 		{Key: "temperature", DoubleV: new(float64)},
 	}
 	*batch[0].DoubleV = 22.5

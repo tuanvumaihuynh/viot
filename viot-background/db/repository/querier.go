@@ -9,8 +9,8 @@ import (
 )
 
 type Querier interface {
-	BatchInsertDeviceData(ctx context.Context, arg []BatchInsertDeviceDataParams) error
-	BatchUpsertDeviceAttribute(ctx context.Context, arg []BatchUpsertDeviceAttributeParams) error
+	BatchInsertDeviceData(ctx context.Context, arg []BatchInsertDeviceDataParam) error
+	BatchUpsertDeviceAttribute(ctx context.Context, arg []BatchUpsertDeviceAttributeParam) error
 }
 
 var _ Querier = (*Queries)(nil)
