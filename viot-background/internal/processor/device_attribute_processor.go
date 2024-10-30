@@ -16,7 +16,6 @@ import (
 
 type deviceAttributeMsg struct {
 	DeviceId  string                 `json:"device_id"`
-	TimeStamp time.Time              `json:"ts"`
 	Data      map[string]interface{} `json:"attributes"`
 }
 
