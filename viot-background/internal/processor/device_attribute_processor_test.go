@@ -44,7 +44,6 @@ func TestConvertDeviceAttributeMsgToBatchParams(t *testing.T) {
 
 	msg := deviceAttributeMsg{
 		DeviceId:  uuid.New().String(),
-		TimeStamp: time.Now(),
 		Data:      attributes,
 	}
 
@@ -78,7 +77,6 @@ func TestConvertDeviceAttributeMsgToBatchParams(t *testing.T) {
 func TestConvertDeviceAttributeMsgToBatchParams_InvalidDataType(t *testing.T) {
 	msg := deviceAttributeMsg{
 		DeviceId:  uuid.New().String(),
-		TimeStamp: time.Now(),
 		Data: map[string]interface{}{
 			"unsupported_value": complex(1, 2),
 		},
@@ -93,7 +91,6 @@ func TestConvertDeviceAttributeMsgToBatchParams_InvalidDataType(t *testing.T) {
 func TestConvertDeviceAttributeMsgToBatchParams_InvalidDeviceID(t *testing.T) {
 	msg := deviceAttributeMsg{
 		DeviceId:  "invalid-uuid",
-		TimeStamp: time.Now(),
 		Data:      map[string]interface{}{},
 	}
 
@@ -121,7 +118,6 @@ func TestDeviceAttributeProcessor_Start(t *testing.T) {
 	// Simulate sending payload to processor
 	payload := deviceAttributeMsg{
 		DeviceId:  uuid.New().String(),
-		TimeStamp: time.Now(),
 		Data: map[string]interface{}{
 			"attr1": 22.5,
 			"attr2": true,
