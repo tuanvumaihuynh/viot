@@ -36,7 +36,7 @@ func NewMqttClient(cfg *config.MqttConfig, logger *zap.Logger) mqtt.Client {
 
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		logger.Error("Failed to connect to MQTT Broker", zap.Error(token.Error()))
+		logger.Fatal("Failed to connect to MQTT Broker", zap.Error(token.Error()))
 	}
 
 	return client
